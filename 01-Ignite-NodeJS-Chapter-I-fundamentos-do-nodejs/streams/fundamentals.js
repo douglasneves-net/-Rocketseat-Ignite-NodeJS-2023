@@ -2,7 +2,7 @@
 
 //Importação de clients via CSV (Excel)
 
-import { Readable } from 'node:stream'
+import { Readable, Writable, Transform } from 'node:stream'
 
 class OneToHundredStream extends Readable {
 
@@ -25,4 +25,25 @@ class OneToHundredStream extends Readable {
   }
 }
 
-new OneToHundredStream().pipe(process.stdout);
+class MultiplyByTenStream extends Writable {
+
+  // O Metodo _write é obrigatorio para escrita de streams
+  // O chunk é o buffer
+  // O encoding é o tipo de encoding
+  // O callback é uma função que deve ser chamada quando o processamento for concluido
+  _write(chunk, encoding, callback) {
+    console.log(Number(chunk.toString()) * -1);
+    callback();
+  }
+}
+
+class InverseNumberStream extends Transform {
+  _transform(chunk, encoding, callback) {
+    const transformed = Number(chunk.toString() * 10);
+    callback(null, Buffer.from(String(transformed)));
+  }
+}
+
+new OneToHundredStream()
+  .pipe(new InverseNumberStream())
+  .pipe(new MultiplyByTenStream());
